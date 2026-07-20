@@ -1,0 +1,62 @@
+name: Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+    paths:
+      - "infra/**"
+      - ".github/workflows/infrastructure.yml"
+  workflow_dispatch:
+
+env:
+  DEPLOYMENT_ENVIRONMENT: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+  SQL_ENTRA_ADMIN_LOGIN: ${{ vars.SQL_ENTRA_ADMIN_LOGIN }}
+  SQL_ENTRA_ADMIN_OBJECT_ID: ${{ vars.SQL_ENTRA_ADMIN_OBJECT_ID }}
+
+jobs:
+  validate:
+    name: Validate Bicep
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Compile template
+        run: az bicep build --file infra/main.bicep --stdout > /dev/null
+
+      - name: Compile parameters
+        run: az bicep build-params --file "infra/$DEPLOYMENT_ENVIRONMENT.bicepparam" --stdout > /dev/null
+
+  deploy:
+    name: Deploy production infrastructure
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+    concurrency:
+      group: ${{ github.ref_name == 'main' && 'production' || 'staging' }}-deployment
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Log in to Azure with OIDC
+        uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Preview infrastructure changes
+        run: |
+          az deployment sub what-if --name "$DEPLOYMENT_ENVIRONMENT" --location westcentralus --template-file infra/main.bicep --parameters "infra/$DEPLOYMENT_ENVIRONMENT.bicepparam"
+
+      - name: Deploy infrastructure
+        run: |
+          az deployment sub create --name "$DEPLOYMENT_ENVIRONMENT" --location westcentralus --template-file infra/main.bicep --parameters "infra/$DEPLOYMENT_ENVIRONMENT.bicepparam" --only-show-errors
