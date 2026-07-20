@@ -1,6 +1,6 @@
 targetScope = 'subscription'
 
-param workloadName string = 'bicep-deploy-example'
+param workloadName string = 'bicep-deploy-example-db-auth'
 param resourceGroupName string = 'rg-${workloadName}-${environmentName}'
 param location string
 
@@ -10,8 +10,8 @@ param location string
 ])
 param environmentName string
 param appServicePlanSku string
-param sqlEntraAdminLogin string
-param sqlEntraAdminObjectId string
+param sqlEntraAdminLogin string = readEnvironmentVariable('SQL_ENTRA_ADMIN_LOGIN')
+param sqlEntraAdminObjectId string = readEnvironmentVariable('SQL_ENTRA_ADMIN_OBJECT_ID')
 
 var tags = {
   environment: environmentName
