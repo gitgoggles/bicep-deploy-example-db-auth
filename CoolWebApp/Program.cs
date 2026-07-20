@@ -3,6 +3,8 @@ using CoolWebApp.Components;
 using CoolWebApp.Models;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.EntityFrameworkCore;
+using CoolWebApp.Data;
 
 var enGb = CultureInfo.GetCultureInfo("en-GB");
 
@@ -11,9 +13,23 @@ CultureInfo.DefaultThreadCurrentUICulture = enGb;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var connectionString =
+	   builder.Configuration.GetConnectionString("DefaultConnection")
+	   ?? throw new InvalidOperationException(
+		   "Connection string 'DefaultConnection' was not configured.");
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+		options.UseSqlServer(connectionString));
+
 builder.Services.AddRazorComponents();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+	var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+	db.Database.Migrate();
+}
 
 if (!app.Environment.IsDevelopment())
 {
@@ -32,16 +48,12 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>();
 
-app.MapGet("/api/products/table", () =>
+app.MapGet("/api/products/table", async (AppDbContext db, CancellationToken ct) =>
 {
-	Product[] products =
-	[
-		new(1001, "Mechanical keyboard", "Peripherals", 129.00m, 14),
-		new(1002, "4K monitor", "Displays", 549.99m, 7),
-		new(1003, "USB-C dock", "Accessories", 189.50m, 22),
-		new(1004, "Webcam", "Peripherals", 89.00m, 0),
-		new(1005, "Laptop stand", "Accessories", 65.95m, 31)
-	];
+	var products = await db.Products
+	.AsNoTracking()
+	.OrderBy(product => product.Id)
+	.ToListAsync(ct);
 
 	return new RazorComponentResult<ProductTable>(new { Products = products });
 });
