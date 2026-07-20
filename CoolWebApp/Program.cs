@@ -40,7 +40,7 @@ app.MapGet("/api/products/table", () =>
 		new(1002, "4K monitor", "Displays", 549.99m, 7),
 		new(1003, "USB-C dock", "Accessories", 189.50m, 22),
 		new(1004, "Webcam", "Peripherals", 89.00m, 0),
-		new(1005, "Laptop stand", "Accessories", 64.95m, 31)
+		new(1005, "Laptop stand", "Accessories", 65.95m, 31)
 	];
 
 	return new RazorComponentResult<ProductTable>(new { Products = products });
