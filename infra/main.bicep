@@ -10,8 +10,8 @@ param location string
 ])
 param environmentName string
 param appServicePlanSku string
-param sqlEntraAdminLogin string = readEnvironmentVariable('SQL_ENTRA_ADMIN_LOGIN')
-param sqlEntraAdminObjectId string = readEnvironmentVariable('SQL_ENTRA_ADMIN_OBJECT_ID')
+param sqlEntraAdminLogin string
+param sqlEntraAdminObjectId string
 
 var tags = {
   environment: environmentName
