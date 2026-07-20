@@ -32,8 +32,6 @@ resource sqlServer 'Microsoft.Sql/servers@2023-08-01' = {
   }
 }
 
-// Allows the web app to reach SQL over its Azure outbound addresses. This does
-// not grant database access; authentication still uses its managed identity.
 resource allowAzureServices 'Microsoft.Sql/servers/firewallRules@2023-08-01' = {
   parent: sqlServer
   name: 'AllowAllWindowsAzureIps'
