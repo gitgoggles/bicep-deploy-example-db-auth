@@ -9,7 +9,7 @@ These are hosted on an Azure free tier, so give them a minute to load.
 Create entra group, e.g. sql-administrators, and put yourself in it. Provide the group display name and id to the bicep params. I've done it via repo env vars. These are identifiers, not secrets.
 
 ## prepare db
-Once deployed, connect to the db and run these queries to allow the app service to talk to the db. The square brackets are needed to avoid parsing issues.
+The following permissions are for automatic runtime migrations, which isn't advisable for production. Once deployed, connect to the db and run these queries to allow the app service to talk to the db. The square brackets are needed to avoid parsing issues.
  ```sql                                                                                                                                                                   
    CREATE USER [app-service-name]                                                                                                   
    FROM EXTERNAL PROVIDER;                                                                                                                                                
@@ -23,4 +23,7 @@ Once deployed, connect to the db and run these queries to allow the app service 
                                                                                                                                                                           
    ALTER ROLE db_datawriter                                                                                                                                               
    ADD MEMBER [app-service-name];                                                                                                   
+
+   ALTER ROLE db_ddladmin                                                                                                                                                 
+   ADD MEMBER [app-service-name];                                                                                                                                         
  ```
