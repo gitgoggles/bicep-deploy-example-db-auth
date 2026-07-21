@@ -14,17 +14,38 @@
     </p>
 </section>
 
-<form hx-post="/api/products"
-	  hx-target="#product-rows"
-	  hx-swap="beforeend"
-	  hx-on::after-request="if(event.detail.successful) this.reset()">
-	<AntiforgeryToken />
-	<input name="name"/>
-	<input name="category"/>
-	<input name="price"/>
-	<input name="stock"/>
-	<button type="submit">+</button>
-</form>
+<section class="add-product" aria-labelledby="add-product-heading">
+    <div class="section-heading">
+        <h2 id="add-product-heading">Add a product</h2>
+    </div>
+
+    <form class="form-card"
+          hx-post="/api/products"
+          hx-target="#product-rows"
+          hx-swap="beforeend"
+          hx-on::after-request="if(event.detail.successful) this.reset()">
+        <AntiforgeryToken />
+        <div class="form-grid">
+            <div class="form-field">
+                <label for="product-name">Product</label>
+                <input id="product-name" name="name" type="text" required />
+            </div>
+            <div class="form-field">
+                <label for="product-category">Category</label>
+                <input id="product-category" name="category" type="text" required />
+            </div>
+            <div class="form-field">
+                <label for="product-price">Price</label>
+                <input id="product-price" name="price" type="number" min="0" step="1" required />
+            </div>
+            <div class="form-field">
+                <label for="product-stock">Stock</label>
+                <input id="product-stock" name="stock" type="number" min="0" step="1" required />
+            </div>
+            <button class="button" type="submit">Add product</button>
+        </div>
+    </form>
+</section>
 
 <section>
     <div class="section-heading">
