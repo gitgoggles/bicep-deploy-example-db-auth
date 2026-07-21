@@ -5,6 +5,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using CoolWebApp.Data;
+using Microsoft.AspNetCore.Mvc;
 
 var enGb = CultureInfo.GetCultureInfo("en-GB");
 
@@ -56,6 +57,23 @@ app.MapGet("/api/products/table", async (AppDbContext db, CancellationToken ct) 
 	.ToListAsync(ct);
 
 	return new RazorComponentResult<ProductTable>(new { Products = products });
+});
+
+app.MapPost("/api/products", async (
+			[FromForm] string name,
+			[FromForm] string category,
+			[FromForm] long price,
+			[FromForm] int stock,
+			AppDbContext db
+			) =>
+{
+	var product = new Product { Name = name.Trim(), Category = category.Trim(), Price = price, Stock = stock };
+
+	db.Products.Add(product);
+	await db.SaveChangesAsync();
+
+	return new RazorComponentResult<ProductRow>(new { Product = product });
+
 });
 
 app.Run();

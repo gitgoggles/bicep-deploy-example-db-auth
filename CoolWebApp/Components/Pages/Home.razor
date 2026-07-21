@@ -1,4 +1,7 @@
 @page "/"
+@using Microsoft.EntityFrameworkCore
+@using CoolWebApp.Data
+@inject AppDbContext db
 
 <PageTitle>Product inventory · Razor + htmx</PageTitle>
 
@@ -11,26 +14,52 @@
     </p>
 </section>
 
-<section aria-labelledby="inventory-heading">
+<form hx-post="/api/products"
+	  hx-target="#product-rows"
+	  hx-swap="beforeend"
+	  hx-on::after-request="if(event.detail.successful) this.reset()">
+	<AntiforgeryToken />
+	<input name="name"/>
+	<input name="category"/>
+	<input name="price"/>
+	<input name="stock"/>
+	<button type="submit">+</button>
+</form>
+
+<section>
     <div class="section-heading">
         <h2 id="inventory-heading">Inventory</h2>
-        <button type="button"
-                class="button"
-                hx-get="/api/products/table"
-                hx-target="#product-table"
-                hx-swap="innerHTML"
-                hx-indicator="#table-loading">
-            Refresh
-        </button>
     </div>
 
     <div id="table-loading" class="htmx-indicator" role="status">Loading inventory…</div>
-    <div id="product-table"
-         hx-get="/api/products/table"
-         hx-trigger="load"
-         hx-swap="innerHTML"
-         hx-indicator="#table-loading"
-         aria-live="polite">
-        <noscript>JavaScript is required to load the inventory table.</noscript>
-    </div>
+	<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Product</th>
+                <th scope="col">Category</th>
+                <th scope="col" class="number">Price</th>
+                <th scope="col" class="number">Stock</th>
+            </tr>
+        </thead>
+        <tbody id="product-rows">
+            @foreach (var product in products)
+            {
+                <ProductRow Product="product" />
+            }
+        </tbody>
+    </table>
+	</div>
 </section>
+        <noscript>JavaScript is required to load the inventory table.</noscript>
+
+@code {
+    private List<Product> products = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await db.Products.AsNoTracking().OrderBy(p => p.Id).ToListAsync();
+    }
+}
+
