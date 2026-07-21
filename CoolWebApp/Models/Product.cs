@@ -1,8 +1,8 @@
 namespace CoolWebApp.Models;
 
 public sealed record Product(
-    int Id,
-    string Name,
-    string Category,
-    decimal Price,
-    int Stock);
+	int Id,
+	string Name,
+	string Category,
+	long Price,
+	int Stock);
